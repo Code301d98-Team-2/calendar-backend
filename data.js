@@ -6,44 +6,44 @@ const mongoose = require('mongoose');
 
 const Data = {};
 
-Data.addItem = async(req, res, next)=>{
+Data.addItem = async (req, res, next) => {
     //console.log(req.body);
-    try{
+    try {
         const data = req.body;
         const item = new EmployeeModel(data);
         await item.save();
         res.status(200).json(item);
-    }catch(e){
+    } catch (e) {
         next(e)
     }
 }
 
-Data.getAllItems = async(req,res, next) => {
-    try{
+Data.getAllItems = async (req, res, next) => {
+    try {
         const items = await EmployeeModel.find({});
         res.status(200).json(items);
-    }catch(e){
+    } catch (e) {
         next(e);
     }
 }
 
-Data.getOneItem = async(req,res,next)=>{
-    try{
+Data.getOneItem = async (req, res, next) => {
+    try {
         const id = req.params.id;
-        const items = await EmployeeModel.find({_id:id});
+        const items = await EmployeeModel.find({ _id: id });
         res.status(200).json(items[0]);
-    }catch(e){
+    } catch (e) {
         next(e);
     }
 
 }
 
-Data.delete = async(req,res,next) =>{
-    try{
+Data.delete = async (req, res, next) => {
+    try {
         let id = req.params.id;
         await EmployeeModel.findByIdAndDelete(id);
         res.status(200).send('Item Deleted');
-    }catch(e){
+    } catch (e) {
         next(e)
     }
 }
