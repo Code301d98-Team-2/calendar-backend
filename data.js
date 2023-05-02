@@ -51,6 +51,15 @@ Data.delete = async (req, res, next) => {
     }
 }
 
+Data.getSchedules = async(req,res,next) =>{
+    try{
+    let myShcedules = await WorkScheduleModel.find({});
+    res.status(200).json(myShcedules);
+    }catch{
+        next(e)
+    }
+}
+
 Data.email = async(req,res,next) =>{
     try{
         let myUsers = await EmployeeModel.find({});
@@ -91,74 +100,59 @@ Data.combo = async(req, res, next)=>{
     const numDays= 2
     const date = new Date() //possible location to pass current date back here 
 
-    const shiftTimes = [ { name: 'dayShift', start: '06:30', end: '15:00' }, { name: 'midshift', start: '14:30', end: '23:00' }, { name: 'nightshift', start: '21:00', end: '05:00' }];
-
-    for(let i = 0; i<numDays; i++){
-        date.setDate(date.getDate()+ i) //sets current date
-        console.log(date);
-        const dayshift =[];
-        const midshift = [];
-        const nightshift = [];
+    const globalSchedules =[];
+    for(let i = 0; i<numDays; i++){   
+        let workscheduleA = {
+            weekStartDate: date.setDate(date.getDate()+ i), //sets current date
+            dayShift : [],
+            midShift : [],
+            nightShift : []
+        }
 
         let randomEmployees = shuffleArray(myUsers);
-
         for(let j =0; j<4; j++){
-            
+            let employee = randomEmployees[j];
+
+            if(employee.level === 5){
+                if(workscheduleA.dayShift.length<1){   
+                    workscheduleA.dayShift.push(employee);
+                }else if(workscheduleA.midShift.length<1){
+                    workscheduleA.midShift.push(employee)
+                }else{
+                    workscheduleA.nightShift.push(employee)
+                }
+            }else if (employee.level ===4){
+                if(workscheduleA.dayShift.length<1){
+                    workscheduleA.dayShift.push(employee);
+                }else if(workscheduleA.midShift.length<1){
+                    workscheduleA.midShift.push(employee)
+                }else{
+                    workscheduleA.nightShift.push(employee)
+                }
+            } else{
+                if(workscheduleA.dayShift.length<2){
+                    workscheduleA.dayShift.push(employee)
+                }else if(workscheduleA.midShift.length<2){
+                    workscheduleA.midShift.push(employee)
+                }else{
+                    workscheduleA.nightShift.push(employee)
+                }
+            }
         }
 
+        const newWorkSchedule = new WorkScheduleModel(workscheduleA);
+        await newWorkSchedule.save()
 
-
-
-        
-
-        for(const shift of shiftTimes){
-            //generate array for employee levels
-            const level5Employees = myUsers.filter(emp => emp.level ===5);
-            const level4Employees = myUsers.filter(emp => emp.level ===4);
-            const level1to3Employees = myUsers.filter(emp => emp.level >=1 && emp.level <=3);
-            
-            //shuffle generated arrays
-            shuffleArray(level5Employees);
-            shuffleArray(level4Employees);
-            shuffleArray(level1to3Employees);
-            
-            //console.log(level5Employees);
-            
-            const selectedEmployees = [];
-
-            dayshift.push(level5Employees.pop());
-            dayshift.push(level4Employees.pop());
-            dayshift.push(level1to3Employees.pop());
-            dayshift.push(level1to3Employees.pop());
-
-            midshift.push(level5Employees.pop());
-            midshift.push(level4Employees.pop());
-            midshift.push(level1to3Employees.pop());
-            midshift.push(level1to3Employees.pop());
-            
-            nightshift.push(level5Employees.pop());
-            nightshift.push(level4Employees.pop());
-            nightshift.push(level1to3Employees.pop());
-            nightshift.push(level1to3Employees.pop());
-            
-            const newWorkSchedule = new WorkScheduleModel({
-                weekStartDate: date,
-                dayshift : dayshift,
-                midshift : midshift,
-                nightshift : nightshift
-            })
-
-            
-            //await newWorkSchedule.save()
-        }
-        
+        globalSchedules.push(newWorkSchedule);
     }
 
-    res.status(200).send(dayshift);
+        
+
+        res.status(200).send(globalSchedules);
         }catch(e){
             next(e);
         }
-};
+    }
 
 //to be used for the data.combo
 function shuffleArray(array){
