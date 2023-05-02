@@ -12,7 +12,8 @@ const Employee = require('./models/employee')
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 //Data Model for cleanup of CRUD methods
-const Data = require('./data')
+const Data = require('./data');
+const e = require('cors');
 
 
 const app = express();
@@ -78,3 +79,16 @@ app.use((error, request, response, next) => {
   console.log(error.message);
   response.status(500).send(error.message);
 });
+
+
+// backend auth * Change "getEmployees" when necessary
+
+// async function getEmployees(req, res) {
+//   try {
+//   const employees = await Employee.find({});
+//   res.status(200).json(employees);
+// } catch (e) {
+//   console.error(e);
+//   res.status(500).send(e);
+// }
+// }
