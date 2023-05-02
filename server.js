@@ -49,7 +49,7 @@ app.get('/', (req, res) => {
 
 app.post('/postemployee', Data.addItem)
 app.get('/getallemployees', Data.getAllItems)
-//Need the get item to be modified in the event there is an error 
+app.get('/getschedules', Data.getSchedules)
 
 
 //testing email API

@@ -11,23 +11,23 @@ const workSchema = new Schema({
     dayShift: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'employee', 
-        startTime: {type:Date, default: "6:30 am"},
-        endTime: { type: Date, default: "3:00 pm" },
     }],
+    // startTime: {type:Date, default: "12:00 am"},
+    // endTime: { type: Date, default: "8:00 am" },
 
     midShift: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'employee',
-        startTime: { type: Date, default: "2:30 pm" },
-        endTime: { type: Date, default: "11:00 pm" },
     }],
+    // startTime: { type: Date, default: "8:00 am" },
+    // endTime: { type: Date, default: "4: 00 pm" },
 
     nightShift: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'employee',
-        startTime: { type: Date, default: "9:00 pm" },
-        endTime: { type: Date, default: "5:00 am" },
-    }]
+    }],
+    // startTime: { type: Date, default: "4:00 pm" },
+    // endTime: { type: Date, default: "12:00 am" },
 
 })
 
