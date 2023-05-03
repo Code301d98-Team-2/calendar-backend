@@ -62,10 +62,10 @@ Data.getSchedules = async (req, res, next) => {
 Data.getEmpSchedules = async (req, res, next) => {
     try {
     let mySchedules = await WorkScheduleModel.find({});
-    console.log(mySchedules);
+    //console.log(mySchedules);
 
     helperShiftGenerator(mySchedules).then((refinedSchedule) => {
-    console.log(refinedSchedule);
+    //console.log(refinedSchedule);
     res.status(200).send(refinedSchedule);
     });
     } catch (e) {
@@ -139,22 +139,30 @@ async function helperShiftGenerator(arr) {
 
 Data.email = async (req, res, next) => {
     try {
-    let myUsers = await EmployeeModel.find({});
-    myUsers.map((employee) => {
-      //console.log( `${employee.email} is my person`);
-        const msg = {
-        to: `${employee.email}`, // Change to your recipient
-        from: "juan.c.olmedo@icloud.com", // Change to your verified sender
-        subject: "Your Work Schedule has been Posted",
-        text: "Please review your Schedule",
-        html: "This will be link to website",
-        };
-        sgMail.send(msg).then(() => {
-        console.log("Email sent").catch((error) => {
-            console.error(error);
-        });
-        });
-    });
+    //let myUsers = await EmployeeModel.find({});
+    // myUsers.map((employee) => {
+    //   //console.log( `${employee.email} is my person`);
+    //     const msg = {
+    //     to: `${employee.email}`, // Change to your recipient
+    //     from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+    //     subject: "Your Work Schedule has been Posted",
+    //     text: "Please review your Schedule",
+    //     html: "This will be link to website",
+    //     };
+    //     sgMail.send(msg).then(() => {
+    //     console.log("Email sent").catch((error) => {
+    //         console.error(error);
+    //     });
+    //     });
+    // });
+
+    const msg = {
+            to: `${employee.email}`, // Change to your recipient
+            from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+            subject: "Your Work Schedule has been Posted",
+            text: "Please review your Schedule",
+            html: "This will be link to website",
+            };
     } catch (e) {
     next(e);
     }
@@ -225,9 +233,10 @@ Data.combo = async (req, res, next) => {
             }
             }while(workscheduleA.dayShift.length < 5 && workscheduleA.midShift <5 && workscheduleA.nightShift < 5);
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
+            globalSchedules.push(newWorkSchedule)
             await newWorkSchedule.save();
             
-            res.status(200).send('success');
+            res.status(200).send(globalSchedules);
         }
     } catch (e) {
     next(e);
