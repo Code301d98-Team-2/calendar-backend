@@ -39,6 +39,7 @@ app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 
 app.get('/test', Data.email)
 app.get('/test2', Data.combo)
+app.get('/test3', Data.getEmpSchedules)
 
 
 
