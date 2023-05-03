@@ -23,8 +23,8 @@ Data.addItem = async (req, res, next) => {
 
 Data.getAllItems = async (req, res, next) => {
     try {
-    const items = await EmployeeModel.find({});
-    res.status(200).json(items);
+        const items = await EmployeeModel.find({ email: req.user.email });
+        res.status(200).json(items);
     } catch (e) {
     next(e);
     }

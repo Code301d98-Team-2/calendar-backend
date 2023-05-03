@@ -13,13 +13,13 @@ const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 //Data Model for cleanup of CRUD methods
 const Data = require('./data')
+const verifyUser = require('./auth');
 
 
 const app = express();
 app.use(cors());
 //important will not get .body in response without this
 app.use(express.json());
-
 
 //NOTE: Connect server to DB
 mongoose.connect(process.env.DB_URL);
@@ -48,8 +48,9 @@ app.get('/', (req, res) => {
   res.send('The server is working');
 })
 
+
 app.post('/postemployee', Data.addItem)
-app.get('/getallemployees', Data.getAllItems)
+app.get('/getallemployees', verifyUser, Data.getAllItems)
 app.get('/getschedules', Data.getSchedules)
 
 
