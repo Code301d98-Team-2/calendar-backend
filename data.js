@@ -23,7 +23,7 @@ Data.addItem = async (req, res, next) => {
 
 Data.getAllItems = async (req, res, next) => {
     try {
-        const items = await EmployeeModel.find({ email: req.user.email });
+        const items = await EmployeeModel.find({  });//email: req.user.email
         res.status(200).json(items);
     } catch (e) {
     next(e);
@@ -58,6 +58,7 @@ Data.getSchedules = async (req, res, next) => {
     next(e);
     }
 };
+
 
 Data.getEmpSchedules = async (req, res, next) => {
     try {
@@ -171,15 +172,15 @@ Data.email = async (req, res, next) => {
 Data.combo = async (req, res, next) => {
     try {
         let myUsers = await EmployeeModel.find({});
-        const numDays = 1;
+        let numDays = 1;
         let date = new Date(); //possible location to pass current date back here
 
-        const globalSchedules = [];
+        let globalSchedules = [];
 
-        for (let i = 0; i < numDays; i++) {
+        for (let i = 0; i <= numDays; i++) {
 
             let workscheduleA = {
-            date: date.setDate(date.getDate() + (i + 1)), //sets current date
+            date: date.setDate(date.getDate() + i), //sets current date
             dayShift: [],
             midShift: [],
             nightShift: [],
@@ -234,10 +235,13 @@ Data.combo = async (req, res, next) => {
             }while(workscheduleA.dayShift.length < 5 && workscheduleA.midShift <5 && workscheduleA.nightShift < 5);
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
             globalSchedules.push(newWorkSchedule)
-            await newWorkSchedule.save();
+            //await newWorkSchedule.save();
             
-            res.status(200).send(globalSchedules);
+            
         }
+        res.status(200).send(globalSchedules);
+
+
     } catch (e) {
     next(e);
     }

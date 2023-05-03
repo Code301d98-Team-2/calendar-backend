@@ -50,7 +50,8 @@ app.get('/', (req, res) => {
 
 
 app.post('/postemployee', Data.addItem) 
-app.get('/getallemployees', verifyUser, Data.getAllItems) 
+//app.get('/getallemployees', verifyUser, Data.getAllItems) 
+app.get('/getallemployees', Data.getAllItems) 
 app.get('/getschedules', Data.getSchedules)
 
 
@@ -74,6 +75,9 @@ function sendEmail(req, res, next) {
       console.error(error)
     })
 }
+
+
+
 
 
 app.get('*', (request, response) => {
