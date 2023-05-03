@@ -40,7 +40,7 @@ app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 app.get('/test', sendEmail) //this will send the email 
 app.get('/test2', Data.combo)
 app.get('/test3', Data.getEmpSchedules)
-
+app.get('/gettwoschedules')
 
 
 

@@ -8,6 +8,7 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const Data = {};
+let cache = {};
 
 Data.addItem = async (req, res, next) => {
   //console.log(req.body);
@@ -171,22 +172,49 @@ Data.email = async (req, res, next) => {
 
 Data.combo = async (req, res, next) => {
     try {
+        let dateTop = new Date(); 
+        let yearTop = dateTop.getFullYear();
+        let monthTop = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+        new Date(),)
+        let dayTop = dateTop.getDate();
+        let formatedDateTop = [dayTop, monthTop, yearTop].join(' ').concat('-generatedSchedules');
+        let key = `${formatedDateTop}`;
+
+        if(cache[key] && (Date.now() - cache[key].timeStamp < 1.44e+7)){
+            console.log('cache was hit', cache);
+            res.status(200).send(cache[key].data)
+        }else{
         let myUsers = await EmployeeModel.find({});
         let numDays = 1;
+
+        //Date Stuff
         let date = new Date(); //possible location to pass current date back here
+        let year = date.getFullYear();
+        let month = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+        new Date(),)
+        let day = date.getDate();
+
+        let formatedDate = [day, month, year].join(' ');
 
         let globalSchedules = [];
+        let chosenStatus = 'even';
 
         for (let i = 0; i <= numDays; i++) {
 
+            let insideDate = [parseInt(formatedDate[0])+i, month, year].join(' ');
+            let stringDate = insideDate.toString();
+            let assignedStatus = chosenStatus.includes('even')? 'odd': 'even';
+
             let workscheduleA = {
-            date: date.setDate(date.getDate() + i), //sets current date
+            date: stringDate,
+            status: assignedStatus,
             dayShift: [],
             midShift: [],
             nightShift: [],
             };
 
             let randomEmployees = shuffleArray(myUsers);
+
             let daylevel5Found = false;
             let daylevel4Found = false;
             let midlevel5Found = false;
@@ -226,21 +254,29 @@ Data.combo = async (req, res, next) => {
                     } else if(workscheduleA.nightShift.length<3) {
                         workscheduleA.nightShift.push(employee);
                     }else{
-                        console.log('no place to put', employee);
+                        //console.log('no place to put', employee);
                     }
                     
                 }
                 
             }
             }while(workscheduleA.dayShift.length < 5 && workscheduleA.midShift <5 && workscheduleA.nightShift < 5);
+            
+            chosenStatus = 'odd'
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
+            
             globalSchedules.push(newWorkSchedule)
             //await newWorkSchedule.save();
             
             
         }
+        console.log('cache was missed');
+        cache[key] = {
+                data: globalSchedules,
+                timeStamp: Date.now()
+            }
         res.status(200).send(globalSchedules);
-
+        }
 
     } catch (e) {
     next(e);
