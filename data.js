@@ -24,7 +24,7 @@ Data.addItem = async (req, res, next) => {
 
 Data.getAllItems = async (req, res, next) => {
     try {
-        const items = await EmployeeModel.find({  });//email: req.user.email
+        const items = await EmployeeModel.find({});//email: req.user.email
         res.status(200).json(items);
     } catch (e) {
     next(e);
@@ -41,15 +41,27 @@ Data.getOneItem = async (req, res, next) => {
     }
 };
 
-Data.delete = async (req, res, next) => {
+Data.deleteEmployee = async (req, res, next) => {
     try {
-    let id = req.params.id;
-    await EmployeeModel.findByIdAndDelete(id);
-    res.status(200).send("Item Deleted");
+        const id = req.params.id;
+        const result = await EmployeeModel.findByIdAndDelete(id);
+        res.status(200).json({ message: 'Employee deleted!', result });
     } catch (e) {
-    next(e);
+        next(e);
     }
 };
+
+Data.updateEmployee = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const updatedData = req.body;
+        const result = await EmployeeModel.findByIdAndUpdate(id, updatedData, { new: true });
+        res.status(200).json({ message: 'Employee updated!', result });
+    } catch (e) {
+        next(e);
+    }
+};
+
 
 Data.getSchedules = async (req, res, next) => {
     try {
