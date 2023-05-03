@@ -50,9 +50,11 @@ app.get('/', (req, res) => {
 
 
 app.post('/postemployee', Data.addItem) 
-//app.get('/getallemployees', verifyUser, Data.getAllItems) 
-app.get('/getallemployees', Data.getAllItems) 
+app.get('/getallemployees', verifyUser, Data.getAllItems) 
 app.get('/getschedules', Data.getSchedules)
+
+app.put('/employee/:id', Data.updateEmployee);
+app.delete('/employee/:id', Data.deleteEmployee);
 
 
 //testing email API
