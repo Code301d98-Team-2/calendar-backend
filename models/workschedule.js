@@ -5,7 +5,12 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const workSchema = new Schema({
-  date: { type: Date, required: true },
+  date: { type: String, required: true }, //type changed from DATE
+  
+  status: {
+    type: String,
+    enum:['odd','even']
+  },
 
   dayShift: [
     {
