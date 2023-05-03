@@ -13,13 +13,13 @@ const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 //Data Model for cleanup of CRUD methods
 const Data = require('./data')
+const verifyUser = require('./auth');
 
 
 const app = express();
 app.use(cors());
 //important will not get .body in response without this
 app.use(express.json());
-
 
 //NOTE: Connect server to DB
 mongoose.connect(process.env.DB_URL);
@@ -37,25 +37,32 @@ app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 
 
 
-app.get('/test', sendEmail)
+app.get('/test', sendEmail) //this will send the email 
+app.get('/test2', Data.combo)
+app.get('/test3', Data.getEmpSchedules)
+
+
+
 
 app.get('/', (req, res) => {
   res.send('The server is working');
 })
 
-app.post('/postemployee', Data.addItem)
-app.get('/getallemployees', Data.getAllItems)
-//Need the get item to be modified in the event there is an error 
+
+app.post('/postemployee', Data.addItem) 
+app.get('/getallemployees', verifyUser, Data.getAllItems) 
+app.get('/getschedules', Data.getSchedules)
 
 
 //testing email API
 function sendEmail(req, res, next) {
+
   const msg = {
     to: 'doubleparked88@gmail.com', // Change to your recipient
     from: 'juan.c.olmedo@icloud.com', // Change to your verified sender
-    subject: 'Sending with SendGrid is Fun',
-    text: 'and easy to do anywhere, even with Node.js',
-    html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+    subject: 'Josh Says Hello',
+    text: 'FINALLY WORKS ',
+    html: '<strong>There has been an update to the schedule</strong>',
   }
 
   sgMail
