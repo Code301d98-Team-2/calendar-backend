@@ -4,129 +4,129 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+// local database
 const mongoose = require('mongoose');
 //bring in employee model to this page to be used
 const Employee = require('./models/employee')
 // email API
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-// bring in auth.js to be used as middleware
-const verifyUser = require('./auth.js');
-const Data = require('./data');
-const e = require('cors');
-const app = express();
-const scheduleController = require('./controllers/schedule');
-const Schedule = require('./models/schedule');
+//Data Model for cleanup of CRUD methods
+const Data = require('./data')
+const verifyUser = require('./auth');
 
-// define token and secret key to verify jwt token
-// this entire step is for "Setup authentication and authorization on the API endpoint." for card 2.
- // define token and secret key to verify jwt token
-const jwt = require('jsonwebtoken');
-const secretKey = 'my_secret_key';
+
+const app = express();
 app.use(cors());
 //important will not get .body in response without this
 app.use(express.json());
 
-mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+//NOTE: Connect server to DB
+mongoose.connect(process.env.DB_URL);
+
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log('MongoDB database connection established successfully');
+db.once('open', function () {
+  console.log('Mongoose is connected');
 });
+app.post('/employees', async (req, res) => {
+  const data = req.body;
 
-// Define a middleware to verify the JWT token
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
+  // Validate the employee data
+  if (!data.name || !data.email) {
+    return res.status(400).send({ error: 'Name and email are required' });
   }
-};
 
-// Define a login API endpoint to generate JWT token
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-  // Check if user exists in database and verify password
-
-  // Generate JWT token
-  const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
-  res.status(200).json({ token });
-});
-
-// Protect the /schedule API endpoint with the verifyToken middleware
-app.get('/schedule', verifyToken, async (req, res) => {
+  // Create a new employee document and save it to the database
   try {
-    // Check if data exists in cache
+    const employee = new Employee(data);
+    await employee.save();
 
-    // Calculate the start and end dates for the next 30 days
-
-    // Query the database for schedule data between the start and end dates
-
-    // Cache the data for 1 hour
-
-    // Return the schedule data as a JSON response
-    res.status(200).json(schedule);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching schedule data');
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
   }
 });
 
-// Define a Schedule schema and model
-// this entire schema step is for card 2
-const scheduleSchema = new mongoose.Schema({
-  date: { type: Date, required: true },
-  event: { type: String, required: true },
-});
-const Schedule = mongoose.model('Schedule', scheduleSchema);
-// Define the API endpoint to retrieve schedule data for the next 30 days
-app.get('/schedule', async (req, res) => {
-  try {
-    // Calculate the start and end dates for the next 30 days
-    const today = new Date();
-    const startDate = today.toISOString().substr(0, 10);
-    const endDate = new Date(today.setDate(today.getDate() + 30)).toISOString().substr(0, 10);
-
-    // Query the database for schedule data between the start and end dates
-    const schedule = await Schedule.find({ date: { $gte: startDate, $lte: endDate } });
-
-    // Return the schedule data as a JSON response
-    res.status(200).json(schedule);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching schedule data');
-  }
-});
-// imports scheduleController module and maps the /schedule 
-//  route to the get Schedule function which handles requests for API endpoint
-exports.getSchedule = async (req, res) => {
-  // code to fetch schedule data from MongoDB
-};
 
 const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
-  console.log(`Good listening on PORT: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 
-app.get('/test', sendEmail)
+
+
+
+
+app.get('/test', sendEmail) //this will send the email 
+app.get('/test2', Data.combo)
+app.get('/test3', Data.getEmpSchedules)
+
+
 app.get('/', (req, res) => {
   res.send('The server is working');
 })
-// controllers/schedule.js
-app.get('/schedule', scheduleController.getSchedule);
-app.post('/postemployee', Data.addItem)
-app.get('/getallemployees', Data.getAllItems)
-//Need the get item to be modified in the event there is an error 
+// delete and update still needs work.
+app.post('/postemployee', Data.addItem) 
+app.get('/getallemployees', verifyUser, Data.getAllItems) 
+app.get('/getschedules', Data.getSchedules)
+// app.get('/deleteemployees', verifyUser, Data.getEmployees)
+// app.get('/updateemployees', verifyUser, Data.getSchedules)
+// Define the update endpoint URL
+app.put('/employees/:id', async (req, res) => {
+  const id = req.params.id;
+  const data = req.body;
 
+  // Validate the updated employee data
+  if (!data.name || !data.email) {
+    return res.status(400).send({ error: 'Name and email are required' });
+  }
+
+  // Update the corresponding employee document in the database
+  try {
+    const employee = await Employee.findByIdAndUpdate(id, data, { new: true });
+
+    if (!employee) {
+      return res.status(404).send({ error: 'Employee not found' });
+    }
+
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
+// Define the delete endpoint URL and HTTP method
+app.delete('/employees/:id', async (req, res) => {
+  const id = req.params.id;
+
+  // Delete theemp loyee document from the database
+  try {
+    const employee = await Employee.findByIdAndDelete(id);
+
+    if (!employee) {
+      return res.status(404).send({ error: 'Employee not found' });
+    }
+
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
+
+// end of jeanettes code above.
 
 //testing email API
 function sendEmail(req, res, next) {
+
   const msg = {
     to: 'doubleparked88@gmail.com', // Change to your recipient
     from: 'juan.c.olmedo@icloud.com', // Change to your verified sender
-    subject: 'Sending with SendGrid is Fun',
-    text: 'and easy to do anywhere, even with Node.js',
-    html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+    subject: 'Josh Says Hello',
+    text: 'FINALLY WORKS ',
+    html: '<strong>There has been an update to the schedule</strong>',
   }
 
   sgMail
@@ -138,8 +138,8 @@ function sendEmail(req, res, next) {
       console.error(error)
     })
 }
-// verify that there is a user coming in.*calling middleware-->*
-app.use(verifyUser);
+
+
 app.get('*', (request, response) => {
   response.status(404).send('Not available');
 });
@@ -149,19 +149,4 @@ app.use((error, request, response, next) => {
   console.log(error.message);
   response.status(500).send(error.message);
 });
-
-
-// backend auth.js * Change "getEmployees" when necessary
-// email property will match user email based off middleware
-
-// async function getEmployees(req, res) {
-//   try {
-//   const employees = await Employee.find({email: req.user.email});
-//   res.status(200).json(employees);
-// } catch (e) {
-//   console.error(e);
-//   res.status(500).send(e);
-// }
-// }
-
 

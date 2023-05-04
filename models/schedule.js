@@ -1,10 +1,14 @@
-// starter code for mondoDB logic for card 2
 const mongoose = require('mongoose');
-const scheduleSchema = new mongoose.Schema({
-  date: { type: Date, required: true },
-  event: { type: String, required: true },
+
+const { Schema } = mongoose;
+
+const scheduleSchema = new Schema({
+    employeeId: { type: String, required: true },
+    start: { type: Date, required: true },
+    end: { type: Date, required: true },
+    shiftType: { type: String, enum: ["morning", "afternoon", "evening"], required: true }
 });
 
-const Schedule = mongoose.model('Schedule', scheduleSchema);
+const Schedule = mongoose.models('schedule', scheduleSchema);
 
 module.exports = Schedule;
