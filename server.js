@@ -40,7 +40,7 @@ app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 app.get('/test', sendEmail) //this will send the email 
 app.get('/test2', Data.combo)
 app.get('/test3', Data.getEmpSchedules)
-
+app.get('/emailemployees', Data.email)
 
 
 
@@ -52,6 +52,9 @@ app.get('/', (req, res) => {
 app.post('/postemployee', Data.addItem) 
 app.get('/getallemployees', verifyUser, Data.getAllItems) 
 app.get('/getschedules', Data.getSchedules)
+
+app.put('/employee/:id', Data.updateEmployee);
+app.delete('/employee/:id', Data.deleteEmployee);
 
 
 //testing email API
@@ -74,6 +77,9 @@ function sendEmail(req, res, next) {
       console.error(error)
     })
 }
+
+
+
 
 
 app.get('*', (request, response) => {
