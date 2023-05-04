@@ -9,7 +9,8 @@ const employeeSchema = new Schema({
     lastName : {type: String, required: true,trim:true},
     employeeId: {type: Number, required: true}, //, match: /^[A-Za-z]\d{5}$/ letter and five digits
     email: String,
-    level: {type: Number, required: true, min:1, max:5}
+    level: {type: Number, required: true, min:1, max:5}, 
+    daysWorked: {type: Number}
 })
 
 
