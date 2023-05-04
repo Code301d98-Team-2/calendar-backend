@@ -55,6 +55,7 @@ Data.updateEmployee = async (req, res, next) => {
     try {
         const id = req.params.id;
         const updatedData = req.body;
+        // console.log("Updating employee with id:", id, "Data:", updatedData);
         const result = await EmployeeModel.findByIdAndUpdate(id, updatedData, { new: true });
         res.status(200).json({ message: 'Employee updated!', result });
     } catch (e) {
