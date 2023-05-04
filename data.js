@@ -131,6 +131,7 @@ async function helperShiftGenerator(arr) {
     const dayShiftEmployees = await Promise.all(
         schedule.dayShift.map(async (employeeId) => {
         const employee = await EmployeeModel.findById(employeeId);
+        //let mytest = await helperEmpModifier(employee);
         return {
             firstName: employee.firstName,
             lastName: employee.lastName,
@@ -186,6 +187,24 @@ async function helperShiftGenerator(arr) {
 
   // return the final array of schedules with employee info
   return schedulesWithEmployees;
+}
+
+async function helperEmpModifier(employee){
+    
+    try {
+        const id = employee._id;
+        const employeToUpdate = await EmployeeModel.find({ _id: id });
+        //console.log(typeof employeToUpdate.daysWorked);
+        let dataToUpdate = employeToUpdate.daysWorked  === undefined ? 1: employeToUpdate.daysWorked +1;
+        //console.log('data to update', dataToUpdate);
+        const updateData = {daysWorked : dataToUpdate};
+        await EmployeeModel.findByIdAndUpdate(id, updateData, { new: true });
+        //res.status(200).json({ message: 'Employee updated!', updatedEmployee });
+        //console.log('updated employee', updatedEmployee);
+    } catch (e) {
+        console.log(e);
+    }
+
 }
 
 Data.email = async (req, res, next) => {
@@ -324,29 +343,38 @@ Data.combo = async (req, res, next) => {
 
                 if (employee.level === 5 && !daylevel5Found) {
                     workscheduleA.dayShift.push(employee);
-                    daylevel5Found = true;  
+                    daylevel5Found = true;
+                    await helperEmpModifier(employee)
                 } else if (employee.level === 4 && !daylevel4Found) {
                     workscheduleA.dayShift.push(employee);
                     daylevel4Found = true;
+                    await helperEmpModifier(employee)
                 }else if (employee.level === 5 && !midlevel5Found) {
                     workscheduleA.midShift.push(employee);
                     midlevel5Found = true;  
+                    await helperEmpModifier(employee)
                 } else if (employee.level === 4 && !midlevel4Found) {
                     workscheduleA.midShift.push(employee);
                     midlevel4Found = true;
+                    await helperEmpModifier(employee)
                 }else if (employee.level === 5 && !nightlevel5Found) {
                     workscheduleA.nightShift.push(employee);
-                    nightlevel5Found = true;  
+                    nightlevel5Found = true;
+                    await helperEmpModifier(employee)  
                 } else if (employee.level === 4 && !nightlevel4Found) {
                     workscheduleA.nightShift.push(employee);
                     nightlevel4Found = true;
+                    await helperEmpModifier(employee)
                 } else if (employee.level >= 1 && employee.level <= 3) {
                     if (workscheduleA.dayShift.length < 3) {
                         workscheduleA.dayShift.push(employee);
+                        await helperEmpModifier(employee)
                     } else if (workscheduleA.midShift.length < 3) {
                         workscheduleA.midShift.push(employee);
+                        await helperEmpModifier(employee)
                     } else if(workscheduleA.nightShift.length<3) {
                         workscheduleA.nightShift.push(employee);
+                        await helperEmpModifier(employee)
                     }else{
 
                     }

@@ -62,6 +62,7 @@ app.get('/test2', Data.combo)
 app.get('/test3', Data.getEmpSchedules)
 
 app.get('/gettwoschedules')
+app.get('/test4', Data.getAllItems)
 
 
 
