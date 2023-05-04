@@ -24,7 +24,9 @@ Data.addItem = async (req, res, next) => {
 
 Data.getAllItems = async (req, res, next) => {
     try {
+
         const items = await EmployeeModel.find({});//email: req.user.email
+
         res.status(200).json(items);
     } catch (e) {
     next(e);
@@ -40,6 +42,36 @@ Data.getOneItem = async (req, res, next) => {
     next(e);
     }
 };
+
+
+Data.delete = async (req, res, next) => {
+    try {
+    let id = req.params.id;
+    await EmployeeModel.findByIdAndDelete(id);
+    res.status(200).send("Item Deleted");
+    } catch (e) {
+    next(e);
+    }
+};
+
+Data.getSchedules = async (req, res, next) => {
+    try {
+    let myShcedules = await WorkScheduleModel.find({});
+    res.status(200).json(myShcedules);
+    } catch {
+    next(e);
+    }
+};
+
+Data.getEmpSchedules = async (req, res, next) => {
+    try {
+    let mySchedules = await WorkScheduleModel.find({});
+    //console.log(mySchedules);
+
+    helperShiftGenerator(mySchedules).then((refinedSchedule) => {
+    //console.log(refinedSchedule);
+    res.status(200).send(refinedSchedule);
+    });
 
 Data.deleteEmployee = async (req, res, next) => {
     try {
@@ -58,10 +90,12 @@ Data.updateEmployee = async (req, res, next) => {
         // console.log("Updating employee with id:", id, "Data:", updatedData);
         const result = await EmployeeModel.findByIdAndUpdate(id, updatedData, { new: true });
         res.status(200).json({ message: 'Employee updated!', result });
+
     } catch (e) {
-        next(e);
+    next(e);
     }
 };
+
 
 
 Data.getSchedules = async (req, res, next) => {
@@ -105,6 +139,7 @@ async function helperShiftGenerator(arr) {
         })
     );
 
+
       // fetch employee info for mid shift
     const midShiftEmployees = await Promise.all(
         schedule.midShift.map(async (employeeId) => {
@@ -116,6 +151,7 @@ async function helperShiftGenerator(arr) {
         };
         })
     );
+
 
       // fetch employee info for night shift
     const nightShiftEmployees = await Promise.all(
@@ -153,6 +189,50 @@ async function helperShiftGenerator(arr) {
 }
 
 Data.email = async (req, res, next) => {
+
+    try {
+    //let myUsers = await EmployeeModel.find({});
+    // myUsers.map((employee) => {
+    //   //console.log( `${employee.email} is my person`);
+    //     const msg = {
+    //     to: `${employee.email}`, // Change to your recipient
+    //     from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+    //     subject: "Your Work Schedule has been Posted",
+    //     text: "Please review your Schedule",
+    //     html: "This will be link to website",
+    //     };
+    //     sgMail.send(msg).then(() => {
+    //     console.log("Email sent").catch((error) => {
+    //         console.error(error);
+    //     });
+    //     });
+    // });
+
+    const msg = {
+            to: `${employee.email}`, // Change to your recipient
+            from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+            subject: "Your Work Schedule has been Posted",
+            text: "Please review your Schedule",
+            html: "This will be link to website",
+            };
+    } catch (e) {
+    next(e);
+    }
+};
+
+Data.combo = async (req, res, next) => {
+    try {
+        let myUsers = await EmployeeModel.find({});
+        const numDays = 1;
+        let date = new Date(); //possible location to pass current date back here
+
+        const globalSchedules = [];
+
+        for (let i = 0; i < numDays; i++) {
+
+            let workscheduleA = {
+            date: date.setDate(date.getDate() + (i + 1)), //sets current date
+
     try {
     //let myUsers = await EmployeeModel.find({});
     // myUsers.map((employee) => {
@@ -221,6 +301,7 @@ Data.combo = async (req, res, next) => {
             let workscheduleA = {
             date: stringDate,
             status: assignedStatus,
+
             dayShift: [],
             midShift: [],
             nightShift: [],
@@ -267,13 +348,40 @@ Data.combo = async (req, res, next) => {
                     } else if(workscheduleA.nightShift.length<3) {
                         workscheduleA.nightShift.push(employee);
                     }else{
-                        //console.log('no place to put', employee);
+
                     }
                     
                 }
                 
             }
             }while(workscheduleA.dayShift.length < 5 && workscheduleA.midShift <5 && workscheduleA.nightShift < 5);
+
+            const newWorkSchedule = new WorkScheduleModel(workscheduleA);
+            globalSchedules.push(newWorkSchedule)
+            await newWorkSchedule.save();
+            
+            res.status(200).send(globalSchedules);
+        }
+    } catch (e) {
+    next(e);
+    }
+};
+
+//to be used for the data.combo
+function shuffleArray(array) {
+  //console.log('made it to the shuffle section');
+    let currentIndex = array.length;
+    let tempValue;
+    let randomIndex;
+
+    while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    tempValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = tempValue;
+    }
+
             
             chosenStatus = 'odd'
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
@@ -310,6 +418,7 @@ function shuffleArray(array) {
     array[currentIndex] = array[randomIndex];
     array[randomIndex] = tempValue;
     }
+
 
     return array;
 }

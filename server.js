@@ -29,6 +29,26 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
   console.log('Mongoose is connected');
 });
+app.post('/employees', async (req, res) => {
+  const data = req.body;
+
+  // Validate the employee data
+  if (!data.name || !data.email) {
+    return res.status(400).send({ error: 'Name and email are required' });
+  }
+
+  // Create a new employee document and save it to the database
+  try {
+    const employee = new Employee(data);
+    await employee.save();
+
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
@@ -40,6 +60,7 @@ app.listen(PORT, () => console.log(`Good listening on PORT: ${PORT}`));
 app.get('/test', sendEmail) //this will send the email 
 app.get('/test2', Data.combo)
 app.get('/test3', Data.getEmpSchedules)
+
 app.get('/gettwoschedules')
 
 
@@ -47,6 +68,55 @@ app.get('/gettwoschedules')
 app.get('/', (req, res) => {
   res.send('The server is working');
 })
+// delete and update still needs work.
+app.post('/postemployee', Data.addItem) 
+app.get('/getallemployees', verifyUser, Data.getAllItems) 
+app.get('/getschedules', Data.getSchedules)
+// app.get('/deleteemployees', verifyUser, Data.getEmployees)
+// app.get('/updateemployees', verifyUser, Data.getSchedules)
+// Define the update endpoint URL
+app.put('/employees/:id', async (req, res) => {
+  const id = req.params.id;
+  const data = req.body;
+
+  // Validate the updated employee data
+  if (!data.name || !data.email) {
+    return res.status(400).send({ error: 'Name and email are required' });
+  }
+
+  // Update the corresponding employee document in the database
+  try {
+    const employee = await Employee.findByIdAndUpdate(id, data, { new: true });
+
+    if (!employee) {
+      return res.status(404).send({ error: 'Employee not found' });
+    }
+
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
+// Define the delete endpoint URL and HTTP method
+app.delete('/employees/:id', async (req, res) => {
+  const id = req.params.id;
+
+  // Delete theemp loyee document from the database
+  try {
+    const employee = await Employee.findByIdAndDelete(id);
+
+    if (!employee) {
+      return res.status(404).send({ error: 'Employee not found' });
+    }
+
+    res.send(employee);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
 
 
 app.post('/postemployee', Data.addItem) 
@@ -56,6 +126,8 @@ app.get('/getschedules', Data.getSchedules)
 app.put('/employee/:id', Data.updateEmployee);
 app.delete('/employee/:id', Data.deleteEmployee);
 
+
+// end of jeanettes code above.
 
 //testing email API
 function sendEmail(req, res, next) {
@@ -91,3 +163,4 @@ app.use((error, request, response, next) => {
   console.log(error.message);
   response.status(500).send(error.message);
 });
+
