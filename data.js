@@ -8,6 +8,7 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const Data = {};
+let cache = {};
 
 Data.addItem = async (req, res, next) => {
   //console.log(req.body);
@@ -23,7 +24,9 @@ Data.addItem = async (req, res, next) => {
 
 Data.getAllItems = async (req, res, next) => {
     try {
-        const items = await EmployeeModel.find({ email: req.user.email });
+
+        const items = await EmployeeModel.find({});//email: req.user.email
+
         res.status(200).json(items);
     } catch (e) {
     next(e);
@@ -39,6 +42,7 @@ Data.getOneItem = async (req, res, next) => {
     next(e);
     }
 };
+
 
 Data.delete = async (req, res, next) => {
     try {
@@ -58,6 +62,51 @@ Data.getSchedules = async (req, res, next) => {
     next(e);
     }
 };
+
+Data.getEmpSchedules = async (req, res, next) => {
+    try {
+    let mySchedules = await WorkScheduleModel.find({});
+    //console.log(mySchedules);
+
+    helperShiftGenerator(mySchedules).then((refinedSchedule) => {
+    //console.log(refinedSchedule);
+    res.status(200).send(refinedSchedule);
+    });
+
+Data.deleteEmployee = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const result = await EmployeeModel.findByIdAndDelete(id);
+        res.status(200).json({ message: 'Employee deleted!', result });
+    } catch (e) {
+        next(e);
+    }
+};
+
+Data.updateEmployee = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const updatedData = req.body;
+        // console.log("Updating employee with id:", id, "Data:", updatedData);
+        const result = await EmployeeModel.findByIdAndUpdate(id, updatedData, { new: true });
+        res.status(200).json({ message: 'Employee updated!', result });
+
+    } catch (e) {
+    next(e);
+    }
+};
+
+
+
+Data.getSchedules = async (req, res, next) => {
+    try {
+    let myShcedules = await WorkScheduleModel.find({});
+    res.status(200).json(myShcedules);
+    } catch {
+    next(e);
+    }
+};
+
 
 Data.getEmpSchedules = async (req, res, next) => {
     try {
@@ -90,6 +139,7 @@ async function helperShiftGenerator(arr) {
         })
     );
 
+
       // fetch employee info for mid shift
     const midShiftEmployees = await Promise.all(
         schedule.midShift.map(async (employeeId) => {
@@ -101,6 +151,7 @@ async function helperShiftGenerator(arr) {
         };
         })
     );
+
 
       // fetch employee info for night shift
     const nightShiftEmployees = await Promise.all(
@@ -138,6 +189,7 @@ async function helperShiftGenerator(arr) {
 }
 
 Data.email = async (req, res, next) => {
+
     try {
     //let myUsers = await EmployeeModel.find({});
     // myUsers.map((employee) => {
@@ -180,12 +232,83 @@ Data.combo = async (req, res, next) => {
 
             let workscheduleA = {
             date: date.setDate(date.getDate() + (i + 1)), //sets current date
+
+    try {
+    //let myUsers = await EmployeeModel.find({});
+    // myUsers.map((employee) => {
+    //   //console.log( `${employee.email} is my person`);
+    //     const msg = {
+    //     to: `${employee.email}`, // Change to your recipient
+    //     from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+    //     subject: "Your Work Schedule has been Posted",
+    //     text: "Please review your Schedule",
+    //     html: "This will be link to website",
+    //     };
+    //     sgMail.send(msg).then(() => {
+    //     console.log("Email sent").catch((error) => {
+    //         console.error(error);
+    //     });
+    //     });
+    // });
+
+    const msg = {
+            to: `${employee.email}`, // Change to your recipient
+            from: "juan.c.olmedo@icloud.com", // Change to your verified sender
+            subject: "Your Work Schedule has been Posted",
+            text: "Please review your Schedule",
+            html: "This will be link to website",
+            };
+    } catch (e) {
+    next(e);
+    }
+};
+
+Data.combo = async (req, res, next) => {
+    try {
+        let dateTop = new Date(); 
+        let yearTop = dateTop.getFullYear();
+        let monthTop = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+        new Date(),)
+        let dayTop = dateTop.getDate();
+        let formatedDateTop = [dayTop, monthTop, yearTop].join(' ').concat('-generatedSchedules');
+        let key = `${formatedDateTop}`;
+
+        if(cache[key] && (Date.now() - cache[key].timeStamp < 1.44e+7)){
+            console.log('cache was hit', cache);
+            res.status(200).send(cache[key].data)
+        }else{
+        let myUsers = await EmployeeModel.find({});
+        let numDays = 1;
+
+        //Date Stuff
+        let date = new Date(); //possible location to pass current date back here
+        let year = date.getFullYear();
+        let month = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+        new Date(),)
+        let day = date.getDate();
+
+        let formatedDate = [day, month, year].join(' ');
+
+        let globalSchedules = [];
+        let chosenStatus = 'even';
+
+        for (let i = 0; i <= numDays; i++) {
+
+            let insideDate = [parseInt(formatedDate[0])+i, month, year].join(' ');
+            let stringDate = insideDate.toString();
+            let assignedStatus = chosenStatus.includes('even')? 'odd': 'even';
+
+            let workscheduleA = {
+            date: stringDate,
+            status: assignedStatus,
+
             dayShift: [],
             midShift: [],
             nightShift: [],
             };
 
             let randomEmployees = shuffleArray(myUsers);
+
             let daylevel5Found = false;
             let daylevel4Found = false;
             let midlevel5Found = false;
@@ -225,13 +348,14 @@ Data.combo = async (req, res, next) => {
                     } else if(workscheduleA.nightShift.length<3) {
                         workscheduleA.nightShift.push(employee);
                     }else{
-                        console.log('no place to put', employee);
+
                     }
                     
                 }
                 
             }
             }while(workscheduleA.dayShift.length < 5 && workscheduleA.midShift <5 && workscheduleA.nightShift < 5);
+
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
             globalSchedules.push(newWorkSchedule)
             await newWorkSchedule.save();
@@ -257,6 +381,44 @@ function shuffleArray(array) {
     array[currentIndex] = array[randomIndex];
     array[randomIndex] = tempValue;
     }
+
+            
+            chosenStatus = 'odd'
+            const newWorkSchedule = new WorkScheduleModel(workscheduleA);
+            
+            globalSchedules.push(newWorkSchedule)
+            //await newWorkSchedule.save();
+            
+            
+        }
+        console.log('cache was missed');
+        cache[key] = {
+                data: globalSchedules,
+                timeStamp: Date.now()
+            }
+        res.status(200).send(globalSchedules);
+        }
+
+    } catch (e) {
+    next(e);
+    }
+};
+
+//to be used for the data.combo
+function shuffleArray(array) {
+  //console.log('made it to the shuffle section');
+    let currentIndex = array.length;
+    let tempValue;
+    let randomIndex;
+
+    while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    tempValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = tempValue;
+    }
+
 
     return array;
 }

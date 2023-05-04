@@ -61,6 +61,9 @@ app.get('/test', sendEmail) //this will send the email
 app.get('/test2', Data.combo)
 app.get('/test3', Data.getEmpSchedules)
 
+app.get('/gettwoschedules')
+
+
 
 app.get('/', (req, res) => {
   res.send('The server is working');
@@ -116,6 +119,14 @@ app.delete('/employees/:id', async (req, res) => {
 });
 
 
+app.post('/postemployee', Data.addItem) 
+app.get('/getallemployees', verifyUser, Data.getAllItems) 
+app.get('/getschedules', Data.getSchedules)
+
+app.put('/employee/:id', Data.updateEmployee);
+app.delete('/employee/:id', Data.deleteEmployee);
+
+
 // end of jeanettes code above.
 
 //testing email API
@@ -138,6 +149,9 @@ function sendEmail(req, res, next) {
       console.error(error)
     })
 }
+
+
+
 
 
 app.get('*', (request, response) => {
