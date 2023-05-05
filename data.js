@@ -43,8 +43,22 @@ Data.getOneItem = async (req, res, next) => {
 
 Data.deleteEmployee = async (req, res, next) => {
     try {
+        let dateTop = new Date(); 
+        let yearTop = dateTop.getFullYear();
+        let monthTop = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+        new Date(),)
+        let dayTop = dateTop.getDate();
+        let formatedDateTop = [dayTop, monthTop, yearTop].join(' ').concat('-generatedSchedules');
+        let key = `${formatedDateTop}`
+
         const id = req.params.id;
         const result = await EmployeeModel.findByIdAndDelete(id);
+        const updatedScedule = await generateScheduleHelper();
+        cache[key] = {
+            data: updatedScedule,
+            timeStamp: Date.now()
+        }
+
         res.status(200).json({ message: 'Employee deleted!', result });
     } catch (e) {
         next(e);
@@ -281,6 +295,22 @@ Data.combo = async (req, res, next) => {
             console.log('cache was hit', cache);
             res.status(200).send(cache[key].data)
         }else{
+        let allSchedules = await generateScheduleHelper();
+        //console.log(allSchedules);
+        console.log('cache was missed');
+        cache[key] = {
+                data: allSchedules,
+                timeStamp: Date.now()
+            }
+        res.status(200).send(allSchedules);
+        }
+  
+    } catch (e) {
+    next(e);
+    }
+  };
+
+async function generateScheduleHelper(){
         let myUsers = await EmployeeModel.find({});
         let numDays = 1;
   
@@ -370,24 +400,15 @@ Data.combo = async (req, res, next) => {
             
             chosenStatus = 'odd'
             const newWorkSchedule = new WorkScheduleModel(workscheduleA);
-            
             globalSchedules.push(newWorkSchedule)
-            //await newWorkSchedule.save();
-            
+            await newWorkSchedule.save();
             
         }
-        console.log('cache was missed');
-        cache[key] = {
-                data: globalSchedules,
-                timeStamp: Date.now()
-            }
-        res.status(200).send(globalSchedules);
-        }
-  
-    } catch (e) {
-    next(e);
-    }
-  };
+        
+        return globalSchedules;
+}
+
+
 
 //to be used for the data.combo
 function shuffleArray(array) {
