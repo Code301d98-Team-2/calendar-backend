@@ -184,6 +184,7 @@ Data.email = async (req, res, next) => {
                         subject: "Your Work Schedule has been Posted",
                         text: "Please review your Schedule",
                         html: "<strong>You have been scheduled for a day shift<br> Please login to view Changes <br><a href='https://medicalendar.netlify.app/displayCalendar'> Your Calendar</a></strong>",
+                        templateId : 'd-1fa152b2d77c45ec959c98f8cfeeecd0'
                         };
                     sgMail
                     .send(msg)
